@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Workout history</h1>
+{% if not weeks %}
+  <p>No workouts yet. <a href="/log">Log your first one.</a></p>
+{% endif %}
+{% for week in weeks %}
+  <h2>Week of {{ week.start.strftime("%d %b %Y") }}</h2>
+  <p>{{ week.count }} workouts · {{ week.minutes }} min · {{ week.volume|round|int }} kg total volume</p>
+  {% for w in week.workouts %}
+    <h3>{{ w.date.strftime("%a %d %b") }} · {{ w.duration }} min</h3>
+    <table>
+      <tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Weight (kg)</th></tr>
+      {% for e in w.entries %}
+      <tr><td>{{ e.name }}</td><td>{{ e.sets }}</td><td>{{ e.reps }}</td><td>{{ e.weight }}</td></tr>
+      {% endfor %}
+    </table>
+    <form method="post" action="/delete/{{ w.id }}"><button>Delete workout</button></form>
+  {% endfor %}
+{% endfor %}
+{% endblock %}

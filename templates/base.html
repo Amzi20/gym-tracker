@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gym Tracker</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    nav a { margin-right: 1rem; }
+    input { margin: 0.25rem 0; padding: 0.4rem; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #ccc; padding: 0.4rem; text-align: left; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/">History</a>
+    <a href="/log">Log workout</a>
+    <a href="/progress">Progress</a>
+  </nav>
+  <hr>
+  {% block content %}{% endblock %}
+</body>
+</html>

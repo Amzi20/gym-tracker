@@ -32,7 +32,60 @@ with app.app_context():
 
 @app.route("/")
 def home():
-    return "Gym tracker is running!"
+    workouts = Workout.query.order_by(Workout.date.desc()).all()
+    weeks = defaultdict(list)
+    for w in workouts:
+        week_start = w.date - timedelta(days=w.date.weekday())  # that week's Monday
+        weeks[week_start].append(w)
+
+    summary = []
+    for week_start, items in weeks.items():  # newest week first
+        summary.append(
+            {
+                "start": week_start,
+                "workouts": items,
+                "count": len(items),
+                "minutes": sum(w.duration for w in items),
+                "volume": sum(
+                    e.sets * e.reps * e.weight for w in items for e in w.entries
+                ),
+            }
+        )
+    return render_template("history.html", weeks=summary)
+
+
+@app.route("/delete/<int:workout_id>", methods=["POST"])
+def delete_workout(workout_id):
+    workout = db.get_or_404(Workout, workout_id)
+    db.session.delete(workout)
+    db.session.commit()
+    return redirect(url_for("home"))
+
+@app.route("/log", methods=["GET", "POST"])
+def log_workout():
+    if request.method == "POST":
+        workout = Workout(
+            date=date.fromisoformat(request.form["date"]),
+            duration=int(request.form["duration"]),
+        )
+        names = request.form.getlist("name")
+        sets = request.form.getlist("sets")
+        reps = request.form.getlist("reps")
+        weights = request.form.getlist("weight")
+        for n, s, r, w in zip(names, sets, reps, weights):
+            if n.strip() and s and r and w:  # skip empty rows
+                workout.entries.append(
+                    ExerciseEntry(
+                        name=n.strip().title(),  # "bench press" becomes "Bench Press"
+                        sets=int(s),
+                        reps=int(r),
+                        weight=float(w),
+                    )
+                )
+        db.session.add(workout)
+        db.session.commit()
+        return redirect(url_for("home"))
+    return render_template("log.html", today=date.today().isoformat())
 
 
 if __name__ == "__main__":
