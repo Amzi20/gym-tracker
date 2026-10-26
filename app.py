@@ -88,5 +88,31 @@ def log_workout():
     return render_template("log.html", today=date.today().isoformat())
 
 
+@app.route("/progress")
+def progress():
+    names = [
+        n for (n,) in db.session.query(ExerciseEntry.name)
+        .distinct().order_by(ExerciseEntry.name)
+    ]
+    selected = request.args.get("exercise") or (names[0] if names else None)
+
+    points = []
+    if selected:
+        rows = (
+            db.session.query(Workout.date, db.func.max(ExerciseEntry.weight))
+            .select_from(Workout)
+            .join(ExerciseEntry)
+            .filter(ExerciseEntry.name == selected)
+            .group_by(Workout.date)
+            .order_by(Workout.date)
+            .all()
+        )
+        points = [{"date": d.isoformat(), "weight": w} for d, w in rows]
+
+    return render_template(
+        "progress.html", names=names, selected=selected, points=points
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)

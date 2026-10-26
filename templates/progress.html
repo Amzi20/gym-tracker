@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Progress</h1>
+{% if not names %}
+  <p>Log a workout first, then come back here.</p>
+{% else %}
+  <form method="get">
+    <label>Exercise
+      <select name="exercise" onchange="this.form.submit()">
+        {% for n in names %}
+        <option value="{{ n }}" {% if n == selected %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </form>
+  <canvas id="chart"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+  <script>
+    const points = {{ points|tojson }};
+    new Chart(document.getElementById("chart"), {
+      type: "line",
+      data: {
+        labels: points.map(p => p.date),
+        datasets: [{
+          label: {{ selected|tojson }} + " (heaviest weight, kg)",
+          data: points.map(p => p.weight),
+          tension: 0.2
+        }]
+      }
+    });
+  </script>
+{% endif %}
+{% endblock %}
